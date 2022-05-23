@@ -1,23 +1,23 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: AZ Parameter demo
+Description: Parametrizacao de zona disponivel
 
 Parameters:
   MyKeyName:
-    Description: Select the key name from the list
+    Description: Selecione uma chave da lista
     Type: AWS::EC2::KeyPair::KeyName
-  MyAvailabilityZone:
-    Description: Select the AZ
+  MinhasZonasDisponiveis:
+    Description: Selecione a zona
     Type: String
-    Default: us-east-2a
+    Default: us-east-1b
     AllowedValues:
+      - us-east-1b
+      - sa-east-1a
       - us-east-2a
-      - us-east-2b    
-      - us-east-2c
-  MyInstanceType:
-    Description: Select the ec2 instance type from list
-    Type: String      
+  MinhasInstanciasDisponiveis:
+    Description: Selecione um tipo de instancia
+    Type: String
     Default: t2.micro
-    AllowedValues: 
+    AllowedValues:
       - t2.micro
       - t2.small
 
@@ -25,13 +25,13 @@ Resources:
   DevEC2Instance: 
     Type: 'AWS::EC2::Instance'
     Properties: 
-      ImageId: ami-0cd3dfa4e37921605
-      InstanceType: !Ref MyInstanceType
+      ImageId: ami-0022f774911c1d690
+      InstanceType: !Ref MinhasInstanciasDisponiveis
       KeyName: !Ref MyKeyName
       SecurityGroups:
         - default        
         - !Ref SSHSecurityGroup 
-      AvailabilityZone: !Ref MyAvailabilityZone      
+      AvailabilityZone: !Ref MinhasZonasDisponiveis
   SSHSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties: 
@@ -41,6 +41,3 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: 0.0.0.0/0
-
-
-

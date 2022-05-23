@@ -3,14 +3,14 @@ Description: KeyName Parameter demo
 
 Parameters:
   MyKeyName:
-    Description: Select the key name from the list
+    Description: Selecione uma chave da lista
     Type: AWS::EC2::KeyPair::KeyName
 
 Resources: 
   DevEC2Instance: 
     Type: 'AWS::EC2::Instance'
     Properties: 
-      ImageId: ami-0cd3dfa4e37921605
+      ImageId: ami-0022f774911c1d690
       InstanceType: t2.micro
       KeyName: !Ref MyKeyName
       SecurityGroups:
@@ -25,6 +25,3 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: 0.0.0.0/0
-
-
-
