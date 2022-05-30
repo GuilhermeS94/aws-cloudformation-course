@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
-  MyVMInstance:
+  MinhaInstanciaVM:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0cd3dfa4e37921605
+      ImageId: ami-0022f774911c1d690
       InstanceType: t2.micro
-      KeyName: cfn-key-1
+      KeyName: cfn-chave-1
