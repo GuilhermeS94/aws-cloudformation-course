@@ -1,53 +1,47 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Conditions Practice
 
 Parameters:
-  MyKeyName:
-    Description: Select Key name
+  MinhaChave:
     Type: AWS::EC2::KeyPair::KeyName
-  EnvironmentName:
-    Description: Select the environment 
+    Description: Selecione o par de chaves
+  Envs:
+    Description: Selecione um ambiente
     Type: String
     Default: dev
-    AllowedValues: 
+    AllowedValues:
       - dev
       - prod
-    ConstraintDescription: must be development or production      
 
-Mappings:     
-  MyRegionMap:
-    us-east-2:
-      HVM64: ami-0cd3dfa4e37921605
+Mappings:
+  MeuMapaRegiao:
+    us-east-1:
+      IDREGIAO: ami-0022f774911c1d690
     us-west-1:
-      HVM64: ami-0ec6517f6edbf8044
-
-  MyEnvironmentMap:
+      IDREGIAO: ami-02541b8af977f6cdd
+  MeuMapaAmbientes:
     dev:
-      instanceType: t2.micro
+      instanciaTipo: t2.micro
     prod:
-      instanceType: t2.small            
+      instanciaTipo: t2.small
 
 Conditions:
-  CreateEIPForProd: !Equals [!Ref EnvironmentName, prod]
-
+  CriarElasticIPParaProd: !Equals [!Ref Envs, prod]
 
 Resources:
-  MyVMInstance:
+  MinhaInstanciaVM:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !FindInMap
-        - MyRegionMap
-        - !Ref 'AWS::Region'
-        - HVM64
+        - MeuMapaRegiao
+        - !Ref "AWS::Region"
+        - IDREGIAO
       InstanceType: !FindInMap
-        - MyEnvironmentMap
-        - !Ref EnvironmentName
-        - instanceType
-      KeyName: !Ref MyKeyName
-
-  MyProdEIP:
+        - MeuMapaAmbientes
+        - !Ref Envs
+        - instanciaTipo
+      KeyName: !Ref MinhaChave
+  MeuEIPProd:
     Type: AWS::EC2::EIP
-    Condition: CreateEIPForProd
+    Condition: CriarElasticIPParaProd
     Properties:
-      InstanceId: !Ref MyVMInstance
-    
+      InstanceId: !Ref MinhaInstanciaVM
