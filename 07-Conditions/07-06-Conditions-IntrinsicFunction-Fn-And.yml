@@ -1,77 +1,71 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Conditions Practice
 
 Parameters:
-  EnvironmentName:
-    Description: Select the environment 
+  Envs:
+    Description: Selecione um ambiente
     Type: String
     Default: dev
-    AllowedValues: 
+    AllowedValues:
       - dev
       - prod
-      - qa
-    ConstraintDescription: must be development or production or qa     
+      - QA
 
-Mappings:     
-  MyRegionMap:
-    us-east-2:
-      HVM64: ami-0cd3dfa4e37921605
+Mappings:
+  MeuMapaRegiao:
+    us-east-1:
+      IDREGIAO: ami-0022f774911c1d690
     us-west-1:
-      HVM64: ami-0ec6517f6edbf8044
-
-  MyEnvironmentMap:
+      IDREGIAO: ami-02541b8af977f6cdd
+  MeuMapaAmbientes:
     dev:
-      instanceType: t2.micro
+      instanciaTipo: t2.micro
     prod:
-      instanceType: t2.small  
-    qa:
-      instanceType: t2.medium                
+      instanciaTipo: t2.small
+    QA:
+      instanciaTipo: t2.medium
 
 Conditions:
-  CreateEIPForProd: !Equals [!Ref EnvironmentName, prod]
-  CreateProdSecurityGroup: !Equals [!Ref EnvironmentName, prod]
-  CreateDevSecurityGroup: !Not [{Condition: CreateProdSecurityGroup}]
-  IfRegionUseKeyName: !And [!Or [!Equals [!Ref 'AWS::Region', us-east-2], !Equals [!Ref 'AWS::Region', us-west-1]], !Equals [!Ref EnvironmentName, dev]]
+  CriarElasticIPParaProd: !Equals [!Ref Envs, prod]
+  CriarGrupoSeguroDev: !Not [{Condition: CriarGrupoSeguroProd}]
+  CriarGrupoSeguroProd: !Equals [!Ref Envs, prod]
+  SeRegiaoUsarChaveValor: !And [!Or [!Equals [!Ref "AWS::Region", us-east-1], !Equals [!Ref "AWS::Region", us-west-2]], !Equals [!Ref Envs, dev]]
 
 Resources:
-  MyVMInstance:
+  MinhaInstanciaVM:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !FindInMap
-        - MyRegionMap
-        - !Ref 'AWS::Region'
-        - HVM64
+        - MeuMapaRegiao
+        - !Ref "AWS::Region"
+        - IDREGIAO
       InstanceType: !FindInMap
-        - MyEnvironmentMap
-        - !Ref EnvironmentName
-        - instanceType
-      KeyName: !If [IfRegionUseKeyName, cfn-key-1, cfn-key-2]
-      SecurityGroups: !If [CreateDevSecurityGroup, [!Ref DevEnvSecurityGroup], [!Ref ProdEnvSecurityGroup]]  
-
-  MyProdEIP:
+        - MeuMapaAmbientes
+        - !Ref Envs
+        - instanciaTipo
+      KeyName: !If [SeRegiaoUsarChaveValor, cfn-chave-2, cfn-chave-1]
+      SecurityGroups: !If [CriarGrupoSeguroDev, [!Ref MeuGrupoDeSegurancaDev], [!Ref MeuGrupoDeSegurancaProd]]
+  MeuEIPProd:
     Type: AWS::EC2::EIP
-    Condition: CreateEIPForProd
+    Condition: CriarElasticIPParaProd
     Properties:
-      InstanceId: !Ref MyVMInstance
-
-  DevEnvSecurityGroup:
+      InstanceId: !Ref MinhaInstanciaVM
+  MeuGrupoDeSegurancaDev:
     Type: AWS::EC2::SecurityGroup
-    Condition: CreateDevSecurityGroup
+    Condition: CriarGrupoSeguroDev
     Properties:
-      GroupDescription: DevSG
+      GroupDescription: Seguranca de DEV
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
+          FromPort: "22"
+          ToPort: "22"
           CidrIp: 0.0.0.0/0
-
-  ProdEnvSecurityGroup:
+  MeuGrupoDeSegurancaProd:
     Type: AWS::EC2::SecurityGroup
-    Condition: CreateProdSecurityGroup
+    Condition: CriarGrupoSeguroProd
     Properties:
-      GroupDescription: ProdSG
+      GroupDescription: Seguranca de PROD
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
+          FromPort: "22"
+          ToPort: "22"
           CidrIp: 0.0.0.0/0
