@@ -1,26 +1,26 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Outputs practice
+Description: Praticas de Output
 
 Parameters:
-  MyKeyName:
-    Description: Select the Key Name
+  MinhaChave:
+    Description: Selecione uma chave
     Type: AWS::EC2::KeyPair::KeyName
-  MyEnvironmentName:
-    Description: Select the environment 
+  Envs:
+    Description: Selecione o ambiente
     Type: String
     Default: dev
     AllowedValues: 
       - dev
       - prod
-    ConstraintDescription: must be development or production      
+    ConstraintDescription: deve ser desenvolvimento ou producao
 
 Mappings:     
-  MyRegionMap:
-    us-east-2:
-      HVM64: ami-0cd3dfa4e37921605
+  MeuMapaRegiao:
+    us-east-1:
+      HVM64: ami-0022f774911c1d690
     us-west-1:
-      HVM64: ami-0ec6517f6edbf8044
-  MyEnvironmentMap:
+      HVM64: ami-02541b8af977f6cdd
+  MeuMapaAmbiente:
     dev:
       instanceType: t2.micro
     prod:
@@ -31,21 +31,21 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !FindInMap
-        - MyRegionMap
+        - MeuMapaRegiao
         - !Ref 'AWS::Region'
         - HVM64
       InstanceType: !FindInMap
-        - MyEnvironmentMap
-        - !Ref MyEnvironmentName
+        - MeuMapaAmbiente
+        - !Ref Envs
         - instanceType
-      KeyName: !Ref MyKeyName
+      KeyName: !Ref MinhaChave
       SecurityGroups: 
-        - !Ref MyDevGlobalSecurityGroup
+        - !Ref MeuGrupoDeSegurancaDev
 
-  MyDevGlobalSecurityGroup:
+  MeuGrupoDeSegurancaDev:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: My Dev environment Global Security Group
+      GroupDescription: Meu grupo de seguranca Desenvolvimento
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
@@ -53,6 +53,6 @@ Resources:
           CidrIp: 0.0.0.0/0
 
 Outputs:
-  MyInstanceId:
-    Description: My instance id
+  MinhaInstanciaID:
+    Description: ID da minha instancia
     Value: !Ref MyVMInstance
