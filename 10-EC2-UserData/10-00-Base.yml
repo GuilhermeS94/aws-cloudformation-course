@@ -1,86 +1,83 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  EnvironmentName:
-    Description: Select the environment 
+  Envs:
+    Description: Selecione um ambiente
     Type: String
     Default: dev
-    AllowedValues: 
+    AllowedValues:
       - dev
       - prod
-    ConstraintDescription: must be development or production      
-  InstanceType: 
-    Description: Select the ec2 instance type
+    ConstraintDescription: Deve ser desenvolvimento ou producao
+  MinhasInstanciasDisponiveis:
+    Description: Selecione um tipo de instancia
     Type: String
     Default: t2.micro
-    AllowedValues: 
+    AllowedValues:
       - t2.micro
       - t2.small
       - t2.medium
-  KeyName:
-    Description: Key name to SSH to VM's. 
+  MinhasChaves:
+    Description: Selecione uma chave da lista
     Type: AWS::EC2::KeyPair::KeyName
-  AvailabilityZone:
-    Description: select the availability zone
+  MinhasZonasDisponiveis:
+    Description: Selecione a zona
     Type: String
-    Default: us-east-2a
+    Default: us-east-1b
     AllowedValues:
+      - us-east-1b
+      - sa-east-1a
       - us-east-2a
-      - us-east-2b
-      - us-east-2c
-
 
 Conditions:
-  CreateEIPForProd: !Equals [!Ref EnvironmentName, prod]
+  CriarEIPProd: !Equals [!Ref Envs, prod]
 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "EC2 Instance Configuration"    
+          default: "Configuracao Intancia EC2"
         Parameters:
-          - InstanceType
-          - KeyName
-          - AvailabilityZone  
+          - MinhasInstanciasDisponiveis
+          - MinhasChaves
+          - MinhasZonasDisponiveis
       - Label:
-          default: "Environment Configuration"          
+          default: "Configuracao de ambiente"
         Parameters:
-          - EnvironmentName  
+          - Envs
     ParameterLabels:
-      EnvironmentName:
-        default: "Which environment we are planning to create this instance?"
-      KeyName:
-        default: "Be aware that once keyname is selected we cannot change it unless instance replaced"
+      Envs:
+        default: "Qual ambiente deseja criar a instancia?"
+      MinhasChaves:
+        default: "Escolha uma chave e que nao podera ser alterada."
 
 Resources:
-  MySecurityGroup:
+  SSHSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: My SG with port 22, 8080 and 80 inbound
+      GroupDescription: meu novo SSH SG
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
           ToPort: '22'
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: '8080'          
+          FromPort: '8080'
           ToPort: '8080'
           CidrIp: 0.0.0.0/0
- 
+
   MyVMInstance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: ami-0022f774911c1d690
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      AvailabilityZone: !Ref AvailabilityZone
+      InstanceType: !Ref MinhasInstanciasDisponiveis
+      KeyName: !Ref MinhasChaves
+      AvailabilityZone: !Ref MinhasZonasDisponiveis
       SecurityGroups:
-        - !Ref MySecurityGroup
-    
+        - !Ref SSHSecurityGroup
+
   MyProdEIP:
     Type: AWS::EC2::EIP
-    Condition: CreateEIPForProd
-    Properties: 
+    Condition: CriarEIPProd
+    Properties:
       InstanceId: !Ref MyVMInstance
-          
-
