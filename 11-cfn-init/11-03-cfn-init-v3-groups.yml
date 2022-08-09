@@ -1,15 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: CFN Init Demo - Just create Metadata Template
+
+Description: CFN Init Demo
 
 Parameters:
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
 
 Resources: 
-  MySecurityGroup:
+  MeuGrupoSeguro:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: My SG with port 22, 8080 and 80 inbound
+      GroupDescription: Meu grupo de seguranca
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
@@ -20,11 +21,11 @@ Resources:
           ToPort: '8080'
           CidrIp: 0.0.0.0/0
 
-  MyVMInstance:
+  MinhaVM:
     Type: AWS::EC2::Instance
     Metadata:
-      Comment: Deploy a simple tomcat Application
-      AWS::CloudFormation::Init:
+      Comment: Deploy de aplicacao tomcat
+      AWS::CloudFormation::Key
         config:
           packages:
             yum:
@@ -32,8 +33,8 @@ Resources:
               java-1.8.0-openjdk-devel: []
               tomcat8: []
           groups:
-            groupone: {}
-            grouptwo:
+            grupoum: {}
+            grupodois:
               gid: "501"
           users:
           sources:
@@ -45,7 +46,4 @@ Resources:
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       SecurityGroups:
-        - !Ref MySecurityGroup
-
-
-
+        - !Ref MeuGrupoSeguro
