@@ -1,15 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: CFN Init Demo - Just create Metadata Template
+
+Description: CFN Init Demo
 
 Parameters:
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
 
 Resources: 
-  MySecurityGroup:
+  MeuGrupoSeguro:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: My SG with port 22, 8080 and 80 inbound
+      GroupDescription: Meu grupo de seguranca
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
@@ -20,13 +21,13 @@ Resources:
           ToPort: '8080'
           CidrIp: 0.0.0.0/0
 
-  MyVMInstance:
+  MinhaVM:
     Type: AWS::EC2::Instance
     CreationPolicy:
-      ResourceSignal:
-        Timeout: PT5M       
+      ResourceSignal: 
+        Timeout: PT5M
     Metadata:
-      Comment: Deploy a simple tomcat Application
+      Comment: Deploy de aplicacao tomcat
       AWS::CloudFormation::Init:
         config:
           packages:
@@ -35,25 +36,25 @@ Resources:
               java-1.8.0-openjdk-devel: []
               tomcat8: []
           groups:
-            groupone: {}
-            grouptwo:
-              gid: "501"              
+            grupoum: {}
+            grupodois:
+              gid: "501"
           users:
-            user1:
+            usuum:
               groups:
-                - groupone
-                - grouptwo
-              uid: "501"                              
+                - grupoum
+                - grupodois
+              uid: "501"
               homeDir: "/tmp"
           sources:
-            /tmp: "https://s3.us-east-2.amazonaws.com/cfn-init-0189/cfn/demo1.zip"
+            /tmp: https://cnf-init-11-05.s3.amazonaws.com/cnf/demo1.zip
           files:
             "/etc/cfn/cfn-hup.conf":
               content: !Sub |
                 [main]
                 stack=${AWS::StackId}
                 region=${AWS::Region}
-                interval=3
+                interval=7
               mode: "000400"
               owner: "root"
               group: "root"
@@ -61,54 +62,46 @@ Resources:
               content: !Sub |
                 [cfn-auto-reloader-hook]
                 triggers=post.update
-                path=Resources.MyVMInstance.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource MyVMInstance --region ${AWS::Region}
+                path=Resources.MinhaVM.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cnf-init -v --stack ${AWS::StackName} --resource MinhaVM --region ${AWS::Region}
               mode: "000400"
               owner: "root"
-              group: "root"                      
+              group: "root"
           commands:
             test1:
-               command: "chmod 755 demo.war"
-               cwd: "/tmp"                            
+              command: "chmod 755 demo.war"
+              cwd: "/tmp"
             test2:
-               command: "sudo yum -y erase java-1.7.0-openjdk.x86_64"
-               cwd: "~"         
-            test3:               
-              command: "rm -rf demo*"
+              command: "sudo yum -y erase java-1.7.0-openjdk.x86_64"
+              cwd: "~"
+            test3:
+              command: "rm -rf demo"
               cwd: "/var/lib/tomcat8/webapps"
             test4:
-              command: "cp demo.war /var/lib/tomcat8/webapps"                                  
+              command: "cp demo.war /var/lib/tomcat8/webapps"
               cwd: "/tmp"
           services:
             sysvinit:
-              tomcat8: 
+              tomcat8:
                 enabled: "true"
                 ensureRunning: "true"
-                sources: "/var/lib/tomcat8/webapps"
     Properties:
       ImageId: ami-0022f774911c1d690
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       SecurityGroups:
-        - !Ref MySecurityGroup
+        - !Ref MeuGrupoSeguro
       UserData:
-        "Fn::Base64": 
+        "Fn::Base64":
           !Sub |
-            #!/bin/bash -xe
-            # Get latest CloudFormation package - These packages change frequently
+            #!/bin/bash xe
+            # Get latest cnf package
             yum update -y aws-cfn-bootstrap
-            # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
-            /opt/aws/bin/cfn-init -s ${AWS::StackId} -r MyVMInstance --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
-            # Signal the status from cfn-init 
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource MyVMInstance --region ${AWS::Region}
-            # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
-            /opt/aws/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
-
+            /opt/aws/bin/cnf-init -s ${AWS::StackId} -r MinhaVM --region ${AWS::Region} || error_exit 'Falhou ao rodar cnf-init'
+            /opt/aws/bin/cnf-signal -e $? --stack ${AWS::StackId} --resource MinhaVM --region ${AWS::Region}
+            /opt/aws/bin/cnf-hup || error_exit 'Falha ao rodar cnf-hup'
 
 Outputs:
   AppURL:
-    Description: Application URL to access
-    Value: !Sub 'http://${MyVMInstance.PublicDnsName}:8080/demo/hello' 
-
-
-
+    Description: "URL de acesso da aplicacao"
+    Value: !Sub "http://${MinhaVM.PublicDnsName}:8080/demo/hello"
